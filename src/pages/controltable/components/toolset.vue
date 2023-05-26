@@ -92,7 +92,7 @@ export default {
       return result
     },
     uploadFileFunction () { // 打开上传文件菜单
-      if (store.state.globalValue.tableData.length >= 3) {
+      if (store.state.globalValue.tableData.length >= 50) {
         this.msg("warning", "文件数量超出上限", `每位用户最多上传2份文件`)
         return 
       }

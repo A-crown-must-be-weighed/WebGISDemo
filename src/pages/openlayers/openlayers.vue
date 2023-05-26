@@ -21,6 +21,7 @@ import {ZoomSlider} from 'ol/control.js';
 import Point from 'ol/geom/Point';
 import Image from 'ol/style/Image';
 import Icon from 'ol/style/Icon';
+import XYZ from 'ol/source/XYZ';
 
 import store from "@/api/store.js" // 全局状态
 import Zoom from "./components/zoom.vue"
@@ -38,6 +39,7 @@ export default {
       iconLayer: store.state.openlayers.iconLayer, // 地图的图层
       drawAndModifyJsonLayer: store.state.openlayers.drawAndModifyJsonLayer, // 地图的图层
       // geoJsonUrl: store.state.openlayers.geoJsonUrl, // geojson的静态资源地址
+      mapToken: 'e0a1aa6cc57edf2692f9c53d4936a97e',
     }
   },
   methods: {
@@ -53,13 +55,68 @@ export default {
     setGeoJsonLayer () {
       this.geoJsonLayer = null
       let that = this
+      // 创建一个样式
+    const style = new Style({
+      stroke: new Stroke({
+        color: 'blue', // 线的颜色
+        width: 3, // 线的宽度（粗细）
+      }),
+      fill: new Fill({
+        color: 'rgba(0, 0, 255, 0.1)', // 填充颜色和透明度
+      }),
+    });
       this.geoJsonLayer = new VectorLayer({
         source: this.vectorSource,
-        style: store.state.openlayers.defaultStyle,
+        style: style,
       })
+    },
+    addRasterMap () {
+      //天地图矢量底图
+      const rasterMap =new TileLayer(
+          {
+              source: new XYZ({
+                  url: "http://t{0-7}.tianditu.com/DataServer?T=vec_c&x={x}&y={y}&l={z}&tk="+this.mapToken,
+                  projection: 'EPSG:4326'
+              }),
+              //图层容器层级
+              // zIndex: 1,
+          }
+      );
+      this.map.addLayer(rasterMap);
+    },
+    addLabelMap () {
+      //天地图矢量标注
+      const labelMap =new TileLayer(
+          {
+              source: new XYZ({
+                  url: "http://t{0-7}.tianditu.com/DataServer?T=cva_c&x={x}&y={y}&l={z}&tk="+this.mapToken,
+                  projection: 'EPSG:4326'
+              }),
+              //图层容器层级
+              // zIndex: 1,
+          }
+      );
+      this.map.addLayer(labelMap);
+    },
+    addSatelliteMap () {
+      //天地图卫星影像
+      const satelliteMap =new TileLayer(
+          {
+              source: new XYZ({
+                  url: "http://t3.tianditu.com/DataServer?T=img_c&x={x}&y={y}&l={z}&tk="+this.mapToken,
+                  projection: 'EPSG:4326'
+              }),
+              //图层容器层级
+              // zIndex: 1,
+          }
+      );
+      this.map.addLayer(satelliteMap);
     },
   },
   mounted () {
+    this.addRasterMap() // 矢量地图
+    this.addLabelMap() // 矢量文字
+    // this.addSatelliteMap() // 卫星地图
     this.setVectorSource()
     this.setGeoJsonLayer()
     this.map.addLayer(this.geoJsonLayer) // 源数据层
